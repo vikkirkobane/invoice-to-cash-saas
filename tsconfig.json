@@ -1,0 +1,11 @@
+{
+  "extends": "@repo",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@invoice/db": ["packages/db/src"],
+      "@invoice/ui": ["packages/ui/src"],
+      "@invoice/utils": ["packages/utils/src"]
+    }
+  }
+}

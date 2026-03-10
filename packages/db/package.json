@@ -1,0 +1,23 @@
+{
+  "name": "@invoice/db",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "node -r dotenv/config ./scripts/migrate.ts",
+    "db:seed": "node -r dotenv/config ./scripts/seed.ts",
+    "db:studio": "drizzle-kit studio",
+    "lint": "echo \"No lint\"",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.30.0",
+    "postgres": "^3.4.0"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.20.0",
+    "dotenv": "^16.0.0",
+    "typescript": "^5"
+  }
+}
