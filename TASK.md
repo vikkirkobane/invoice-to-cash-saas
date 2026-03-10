@@ -9,45 +9,45 @@
 ## Milestone 0 — Project Foundation
 > Monorepo scaffold, tooling, local dev environment, CI pipeline
 
-- [ ] Initialize Turborepo monorepo with pnpm workspaces
-- [ ] Create `apps/web` — Next.js 14 App Router + TypeScript
-- [ ] Create `packages/db` — Drizzle ORM workspace package
-- [ ] Create `packages/ui` — Shared component library workspace package
-- [ ] Create `packages/utils` — Shared types, schemas, helpers workspace package
-- [ ] Configure `turbo.json` pipeline — `build`, `lint`, `type-check`, `test` tasks
-- [ ] Configure root `tsconfig.json` with path aliases for all packages
-- [ ] Configure ESLint at root — extends to all packages
-- [ ] Configure Prettier at root — enforce in CI
-- [ ] Set up Husky + lint-staged — run lint + type-check on pre-commit
-- [ ] Create `docker-compose.yml` — PostgreSQL 15 + Redis 7 services
-- [ ] Create `.env.example` with all required variable keys (no values)
-- [ ] Create `.gitignore` — ignore `.env*`, `node_modules`, `.next`, `dist`
-- [ ] Set up GitHub Actions CI workflow — type-check → lint → test → build
-- [ ] Connect repo to Vercel — enable preview deployments on PRs
-- [ ] Write root `README.md` with quickstart instructions
+- [x] Initialize Turborepo monorepo with pnpm workspaces
+- [x] Create `apps/web` — Next.js 14 App Router + TypeScript
+- [x] Create `packages/db` — Drizzle ORM workspace package
+- [x] Create `packages/ui` — Shared component library workspace package
+- [x] Create `packages/utils` — Shared types, schemas, helpers workspace package
+- [x] Configure `turbo.json` pipeline — `build`, `lint`, `type-check`, `test` tasks
+- [x] Configure root `tsconfig.json` with path aliases for all packages
+- [x] Configure ESLint at root — extends to all packages
+- [x] Configure Prettier at root — enforce in CI
+- [x] Set up Husky + lint-staged — run lint + type-check on pre-commit
+- [x] Create `docker-compose.yml` — PostgreSQL 15 + Redis 7 services
+- [x] Create `.env.example` with all required variable keys (no values)
+- [x] Create `.gitignore` — ignore `.env*`, `node_modules`, `.next`, `dist`
+- [x] Set up GitHub Actions CI workflow — type-check → lint → test → build
+- [ ] Connect repo to Vercel — enable preview deployments on PRs (manual step)
+- [x] Write root `README.md` with quickstart instructions
 
 ---
 
 ## Milestone 1 — Database Schema & Migrations
 > All tables defined, migrations generated and applied, seed script ready
 
-- [ ] Install and configure Drizzle ORM + Drizzle Kit in `packages/db`
-- [ ] Create Drizzle client singleton with connection pooling config
-- [ ] Define `pgEnum` values — `userRole`, `invoiceStatus`, `paymentProvider`, `paymentStatus`, `discountType`, `reminderSlot`, `webhookProvider`
-- [ ] Define `tenants` table schema
-- [ ] Define `users` table schema with RBAC role enum
-- [ ] Define `customers` table schema with `billing_address` JSONB
-- [ ] Define `invoices` table schema with all status + financial columns
-- [ ] Define `invoice_line_items` table schema with `sort_order`
-- [ ] Define `payments` table schema
-- [ ] Define `reminder_templates` table schema with `offset_days`
-- [ ] Define `webhook_events` table schema with `event_id` unique constraint
-- [ ] Define `suppression_list` table schema for SES bounces/complaints
+- [x] Install and configure Drizzle ORM + Drizzle Kit in `packages/db` (package.json, config)
+- [x] Create Drizzle client singleton with connection pooling config
+- [x] Define `pgEnum` values — `userRole`, `invoiceStatus`, `paymentProvider`, `paymentStatus`, `discountType`, `reminderSlot`, `webhookProvider`
+- [x] Define `tenants` table schema
+- [x] Define `users` table schema with RBAC role enum
+- [x] Define `customers` table schema with `billing_address` JSONB
+- [x] Define `invoices` table schema with all status + financial columns
+- [x] Define `invoice_line_items` table schema with `sort_order`
+- [x] Define `payments` table schema
+- [x] Define `reminder_templates` table schema with `offset_days`
+- [x] Define `webhook_events` table schema with `event_id` unique constraint
+- [x] Define `suppression_list` table schema for SES bounces/complaints
 - [ ] Generate initial migration with Drizzle Kit
 - [ ] Apply migration to local Docker Postgres
-- [ ] Write `db:seed` script — creates one test tenant, owner user, and sample customers + invoices
-- [ ] Add `db:studio` script — Drizzle Studio on local
-- [ ] Export all table schemas and types from `packages/db/index.ts`
+- [x] Write `db:seed` script — creates one test tenant, owner user, and sample customers + invoices
+- [x] Add `db:studio` script — Drizzle Studio on local
+- [x] Export all table schemas and types from `packages/db/index.ts`
 
 ---
 
