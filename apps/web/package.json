@@ -23,7 +23,16 @@
     "react-hook-form": "^7.48.0",
     "@hookform/resolvers": "^3.3.0",
     "next-auth": "^5.0.0-beta.4",
-    "bcrypt": "^5.1.0"
+    "bcrypt": "^5.1.0",
+    "@sentry/nextjs": "^8.0.0",
+    "bullmq": "^5.0.0",
+    "ioredis": "^5.0.0",
+    "@aws-sdk/client-s3": "^3.0.0",
+    "@aws-sdk/client-ses": "^3.0.0",
+    "@aws-sdk/s3-request-presigner": "^3.0.0",
+    "@paypal/checkout-server-sdk": "^1.0.0",
+    "stripe": "^14.0.0",
+    "puppeteer": "^21.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",
