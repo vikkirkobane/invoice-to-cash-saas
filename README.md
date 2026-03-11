@@ -35,6 +35,47 @@ The platform is built on a modern, type-safe stack and follows security-first pr
 
 ---
 
+## 🚀 Quickstart
+
+Ready to run the project locally?
+
+1. **Clone and install**
+   ```bash
+   git clone https://github.com/vikkirkobane/invoice-to-cash-saas.git
+   cd invoice-to-cash-saas
+   pnpm install
+   ```
+
+2. **Start infrastructure** (Postgres + Redis)
+   ```bash
+   docker compose up -d
+   ```
+
+3. **Configure environment**
+   ```bash
+   cp .env.example .env.local
+   # Fill in required variables (see .env.example and LOCAL_SETUP.md)
+   ```
+
+4. **Run migrations and seed**
+   ```bash
+   pnpm --filter @invoice/db db:migrate
+   pnpm --filter @invoice/db db:seed
+   ```
+
+5. **Start dev server**
+   ```bash
+   pnpm dev
+   ```
+
+6. Open http://localhost:3000 and register a new account.
+
+For a detailed step-by-step guide, including troubleshooting and optional tooling, see [LOCAL_SETUP.md](./LOCAL_SETUP.md).
+
+---
+
+---
+
 ## 🏗️ Architecture at a Glance
 
 ```
