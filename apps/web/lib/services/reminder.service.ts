@@ -4,7 +4,18 @@ import { eq } from 'drizzle-orm';
 import { reminderQueue } from '@/lib/queue/reminder.queue';
 import { EmailService } from '@/lib/services/email.service';
 
+/**
+ * Reminder service — schedules and processes automated email reminders
+ * using Bull queue and template engine.
+ */
 export class ReminderService {
+  /**
+   * For a given invoice, enqueue reminder jobs for all active templates.
+   * Each job is scheduled to run at (due_date + offset_days).
+   *
+   * @param invoiceId - Invoice to schedule reminders for
+   * @param tenantId - Tenant ID (used to fetch templates)
+   */
   static async scheduleForInvoice(invoiceId: string, tenantId: string) {
     const templates = await db.query.reminderTemplates.findMany({ where: eq(reminderTemplates.tenantId, tenantId) });
     const invoice = await db.query.invoices.findFirst({ where: eq(invoices.id, invoiceId) });
@@ -17,12 +28,24 @@ export class ReminderService {
     }
   }
 
+  /**
+   * Cancel all pending reminder jobs for an invoice.
+   * Called when an invoice is paid or cancelled.
+   *
+   * @param invoiceId - Invoice to cancel reminders for
+   */
   static async cancelForInvoice(invoiceId: string) {
     const jobs = await reminderQueue.getJobs(['waiting', 'delayed']);
     const toRemove = jobs.filter(j => j.data.invoiceId === invoiceId);
     await Promise.all(toRemove.map(j => j.remove()));
   }
 
+  /**
+   * Bull job processor — renders reminder email template and sends.
+   * Merge tags: {{customer_name}}, {{invoice_number}}, {{amount_due}}, {{due_date}}, {{payment_link}}.
+   *
+   * @param job - Bull job data containing invoiceId and templateId
+   */
   static async processJob(job: any) {
     const { invoiceId, templateId } = job.data;
     const invoice = await db.query.invoices.findFirst({ where: eq(invoices.id, invoiceId) });

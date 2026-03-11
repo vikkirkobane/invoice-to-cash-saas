@@ -1,10 +1,26 @@
 import { db } from '@invoice/db';
 import { invoices, invoiceLineItems, customers, tenants } from '@invoice/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
-import { randomUUID } from 'crypto';
 import crypto from 'crypto';
 
+/**
+ * Service for invoice lifecycle operations: creation, updates, sending, cancellation,
+ * payment recording, and status transitions.
+ *
+ * All methods expect a tenantId for strict multi-tenancy isolation.
+ */
 export class InvoiceService {
+  /**
+   * Creates a new invoice in DRAFT status.
+   * - Generates a sequential invoice number based on tenant settings.
+   * - Calculates totals including discount and tax.
+   * - Creates associated line items.
+   *
+   * @param tenantId - The tenant creating the invoice
+   * @param data - Invoice creation payload (customerId, lineItems, dates, etc.)
+   * @returns The created invoice record
+   * @throws Error if tenant not found
+   */
   static async create(tenantId: string, data: any) {
     // Generate invoice number per tenant sequence
     const tenant = await db.query.tenants.findFirst({ where: eq(tenants.id, tenantId) });
@@ -58,8 +74,17 @@ export class InvoiceService {
     return invoice;
   }
 
+  /**
+   * Updates an existing invoice. Only allowed while invoice is in DRAFT status.
+   * Replaces line items entirely if provided.
+   *
+   * @param tenantId - Tenant performing the update
+   * @param invoiceId - Invoice to update
+   * @param data - Partial invoice fields (lineItems, notes, dates, etc.)
+   * @returns Updated invoice
+   * @throws Error if invoice not found or not in draft status
+   */
   static async update(tenantId: string, invoiceId: string, data: any) {
-    // Only allow updates on draft invoices
     const existing = await db.query.invoices.findFirst({
       where: and(eq(invoices.tenantId, tenantId), eq(invoices.id, invoiceId)),
     });
@@ -68,10 +93,8 @@ export class InvoiceService {
       throw new Error('Cannot update non-draft invoice');
     }
 
-    // Update invoice (no status transition)
     const updates: any = { ...data };
     if (data.lineItems) {
-      // Delete existing line items and reinsert (simplified)
       await db.delete(invoiceLineItems).where(eq(invoiceLineItems.invoiceId, invoiceId));
       const lineItems = data.lineItems.map((li: any, idx: number) => ({
         invoiceId,
@@ -94,8 +117,17 @@ export class InvoiceService {
     return invoice;
   }
 
+  /**
+   * Sends an invoice: DRAFT -> SENT.
+   * Sets sentAt timestamp and generates a payment token if missing.
+   * Should trigger async PDF generation and email (TODO).
+   *
+   * @param tenantId - Tenant sending the invoice
+   * @param invoiceId - Invoice to send
+   * @returns The updated invoice (now SENT)
+   * @throws Error if invoice not in DRAFT status
+   */
   static async send(tenantId: string, invoiceId: string) {
-    // Transition DRAFT -> SENT atomically
     const [invoice] = await db
       .update(invoices)
       .set({ status: 'sent', sentAt: new Date() })
@@ -103,13 +135,18 @@ export class InvoiceService {
       .returning();
 
     if (!invoice) throw new Error('Invoice not found or not in draft status');
-
-    // TODO: Trigger async PDF generation and email via services
     return invoice;
   }
 
+  /**
+   * Cancels an invoice. Allowed only from DRAFT or SENT status.
+   *
+   * @param tenantId - Tenant cancelling
+   * @param invoiceId - Invoice to cancel
+   * @returns Cancelled invoice
+   * @throws Error if invoice cannot be cancelled
+   */
   static async cancel(tenantId: string, invoiceId: string) {
-    // Allow cancel only from DRAFT or SENT
     const [invoice] = await db
       .update(invoices)
       .set({ status: 'cancelled' as const })
@@ -126,6 +163,14 @@ export class InvoiceService {
     return invoice;
   }
 
+  /**
+   * Marks an invoice as VIEWED when the client opens the payment link.
+   * Transition: SENT -> VIEWED.
+   *
+   * @param tenantId - Tenant ID
+   * @param invoiceId - Invoice to mark viewed
+   * @returns Updated invoice
+   */
   static async markViewed(tenantId: string, invoiceId: string) {
     const [invoice] = await db
       .update(invoices)
@@ -143,19 +188,28 @@ export class InvoiceService {
     return invoice;
   }
 
+  /**
+   * Records a payment against an invoice. Updates amount_paid and transitions status
+   * to PAID if fully paid, otherwise PARTIALLY_PAID.
+   *
+   * @param tenantId - Tenant ID
+   * @param invoiceId - Invoice being paid
+   * @param amount - Payment amount
+   * @param provider - 'stripe' | 'paypal'
+   * @param providerPaymentId - External payment ID from gateway
+   * @returns Updated invoice
+   */
   static async recordPayment(tenantId: string, invoiceId: string, amount: number, provider: 'stripe' | 'paypal', providerPaymentId: string) {
-    // Create payment record
     await db.insert(payments).values({
       invoiceId,
       tenantId,
       provider,
       providerPaymentId,
       amount,
-      currency: 'USD', // TODO: from invoice
+      currency: 'USD', // TODO: derive from invoice
       status: 'succeeded',
     });
 
-    // Update invoice amount_paid and status
     const invoice = await db.query.invoices.findFirst({ where: and(eq(invoices.tenantId, tenantId), eq(invoices.id, invoiceId)) });
     if (!invoice) throw new Error('Invoice not found');
 
@@ -171,8 +225,11 @@ export class InvoiceService {
     return updated;
   }
 
+  /**
+   * Batch job: transitions SENT/VIEWED invoices with past due dates to OVERDUE.
+   * Intended to run nightly via Bull cron.
+   */
   static async markOverdue() {
-    // Batch job: set OVERDUE on past-due SENT/VIEWED invoices not paid
     await db
       .update(invoices)
       .set({ status: 'overdue' })

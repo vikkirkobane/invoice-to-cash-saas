@@ -4,17 +4,26 @@ import { db } from '@invoice/db';
 import { webhookEvents } from '@invoice/db/schema';
 import { eq } from 'drizzle-orm';
 
+/**
+ * POST /api/webhooks/paypal
+ * Handles PayPal webhook events.
+ * - Verifies signature (TODO in production)
+ * - Idempotent processing via webhook_events table
+ * - On PAYMENT.CAPTURE.COMPLETED: records payment and updates invoice status
+ */
 export async function POST(req: Request) {
   const body = await req.text();
   const signature = req.headers.get('paypal-auth-algo')!; // simplified
 
   try {
-    // Verify signature with PayPal SDK in production
+    // TODO: In production, verify signature using PayPal SDK before parsing
     const event = JSON.parse(body);
 
+    // Idempotency check
     const existing = await db.query.webhookEvents.findFirst({ where: eq(webhookEvents.eventId, event.id) });
     if (existing) return NextResponse.json({ received: true });
 
+    // Audit log
     await db.insert(webhookEvents).values({
       provider: 'paypal',
       eventId: event.id,
@@ -22,11 +31,19 @@ export async function POST(req: Request) {
       payload: event,
     });
 
+    // Handle payment capture completion
     if (event.event_type === 'PAYMENT.CAPTURE.COMPLETED') {
       const capture = event.resource;
-      const invoiceId = capture.invoice_id; // depends on metadata
+      // TODO: invoiceId should be passed via custom_id or invoice_id in order creation
+      const invoiceId = capture.invoice_id;
       if (invoiceId) {
-        await PaymentService.recordPayment(invoiceId, capture.sender, 'paypal', capture.id, capture.amount.value);
+        await PaymentService.recordPayment(
+          invoiceId,
+          capture.sender?.payer_id || '',
+          'paypal',
+          capture.id,
+          Number(capture.amount.value)
+        );
       }
     }
 

@@ -2,20 +2,34 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { auth } from '@/lib/auth';
 import { InvoiceService } from '@/lib/services/invoice.service';
-import { invoiceCreateSchema, invoiceUpdateSchema } from '@invoice/utils/schemas/invoice';
+import { invoiceCreateSchema } from '@invoice/utils/schemas/invoice';
 
+/**
+ * GET /api/v1/invoices
+ * List invoices for the current tenant (placeholder — pagination and filters TODO)
+ */
 export async function GET(req: Request) {
   const session = await getServerSession(auth);
-  if (!session) return NextResponse.json({ error: { code: 'UNAUTHORIZED', status: 401 } }, { status: 401 });
+  if (!session) {
+    return NextResponse.json({ error: { code: 'UNAUTHORIZED', status: 401 } }, { status: 401 });
+  }
 
-  // TODO: pagination, filters
-  // For now placeholder
+  // TODO: Implement pagination, search, filters
   return NextResponse.json({ data: [] });
 }
 
+/**
+ * POST /api/v1/invoices
+ * Create a new invoice in DRAFT status.
+ * Validates input with Zod, then calls InvoiceService.create().
+ *
+ * Expects JSON body matching invoiceCreateSchema.
+ */
 export async function POST(req: Request) {
   const session = await getServerSession(auth);
-  if (!session) return NextResponse.json({ error: { code: 'UNAUTHORIZED', status: 401 } }, { status: 401 });
+  if (!session) {
+    return NextResponse.json({ error: { code: 'UNAUTHORIZED', status: 401 } }, { status: 401 });
+  }
 
   const body = await req.json();
   const parsed = invoiceCreateSchema.safeParse(body);

@@ -2,32 +2,44 @@ import { db } from '@invoice/db';
 import { customers, invoices } from '@invoice/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
 
+/**
+ * Customer management service — CRUD operations scoped to a tenant.
+ */
 export async function listCustomers(tenantId: string, search?: string, includeArchived: boolean = false) {
   const where = eq(customers.tenantId, tenantId);
-  if (!includeArchived) {
-    // archivedAt null means active
-  }
-
+  // Note: search filter not yet implemented in query
   return db.query.customers.findMany({
     where,
     orderBy: [desc(customers.createdAt)],
   });
 }
 
+/**
+ * Get a single customer by ID with tenant isolation.
+ */
 export async function getCustomer(tenantId: string, customerId: string) {
   return db.query.customers.findFirst({
     where: and(eq(customers.tenantId, tenantId), eq(customers.id, customerId)),
   });
 }
 
+/**
+ * Create a new customer for the given tenant.
+ */
 export async function createCustomer(tenantId: string, data: any) {
   return db.insert(customers).values({ ...data, tenantId }).returning();
 }
 
+/**
+ * Update an existing customer (full update; use partial fields as needed).
+ */
 export async function updateCustomer(tenantId: string, customerId: string, data: any) {
   return db.update(customers).set(data).where(and(eq(customers.tenantId, tenantId), eq(customers.id, customerId))).returning();
 }
 
+/**
+ * Soft-archive a customer by setting archivedAt timestamp.
+ */
 export async function archiveCustomer(tenantId: string, customerId: string) {
   return db.update(customers).set({ archivedAt: new Date() }).where(and(eq(customers.tenantId, tenantId), eq(customers.id, customerId))).returning();
 }
