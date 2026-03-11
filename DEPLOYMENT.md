@@ -2,10 +2,10 @@
 
 ## Pre-deployment
 
-- [ ] Provision managed PostgreSQL (Supabase/Neon) with connection pooling
+- [ ] Provision managed PostgreSQL (Neon recommended). See **NEON_SETUP.md** for step-by-step integration.
 - [ ] Provision managed Redis (Upstash) with persistence
 - [ ] Create private AWS S3 bucket with correct CORS policy
-- [ ] Verify domain in AWS SES, set up DKIM/SPF/DMARC
+- [ ] Verify domain in AWS SES, set up DKIM, SPF, DMARC
 - [ ] Request SES production access (exit sandbox)
 - [ ] Register webhook endpoints in Stripe and PayPal dashboards
 - [ ] Set all environment variables in Vercel and GitHub Actions secrets
